@@ -36,7 +36,7 @@ def _load_sop_text() -> str:
         return ""
 
 
-async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> None:
+async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> str:
     sop_text = _load_sop_text()
 
     # Create Gemini service if needed (not in debug mode)
@@ -81,14 +81,14 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> None:
             # ============================================================
             # STEP 1: Extract Faculty Information
             # ============================================================
-            logger.debug("\n[bold cyan]═══ Step 1: Faculty Extraction ═══[/bold cyan]\n")
+            logger.info("\n[bold cyan]═══ Step 1: Faculty Extraction ═══[/bold cyan]\n")
             result = await faculty_extractor_agent.run(
                 f"Extract information from this faculty page: {url}",
                 deps=deps,
             )
             extraction = result.output
-            logger.debug(f"[bold green]✓ Extracted:[/bold green] {extraction.name}")
-            logger.debug(f"[dim]Institution:[/dim] {extraction.institution}")
+            logger.info(f"[bold green]✓ Extracted:[/bold green] {extraction.name}")
+            logger.info(f"[dim]Institution:[/dim] {extraction.institution}")
             logger.debug(f"[dim]Department:[/dim] {extraction.department or 'N/A'}")
             logger.debug(
                 f"[dim]Scholar URL:[/dim] {extraction.google_scholar_url or 'Not found'}\n"
@@ -97,7 +97,7 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> None:
             # ============================================================
             # STEP 2: Fetch Google Scholar Papers
             # ============================================================
-            logger.debug("\n[bold cyan]═══ Step 2: Google Scholar Scrape ═══[/bold cyan]\n")
+            logger.info("\n[bold cyan]═══ Step 2: Google Scholar Scrape ═══[/bold cyan]\n")
 
             # Convert Pydantic HttpUrl to string for httpx compatibility
             scholar_url_str = (
@@ -133,12 +133,16 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> None:
                     )
                     raise typer.Exit(code=1)
 
+            logger.info(f"Extracted Scholar URL: {extraction.google_scholar_url}")
+            logger.info("This can take a minute due to rate limiting...")
+            logger.info("Searching for papers...")
+
             # Fetch Scholar papers (pure helper function, not a tool)
             scholar_results = await fetch_scholar_papers(
                 deps=deps,
                 google_scholar_url=scholar_url_str,
             )
-            logger.debug(
+            logger.info(
                 f"[bold green]✓ Found {len(scholar_results.papers)} papers with PDFs"
                 f"[/bold green]"
             )
@@ -151,7 +155,7 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> None:
             # ============================================================
             # STEP 3: Run Downselector Agent
             # ============================================================
-            logger.debug("\n[bold cyan]═══ Step 3: Paper Downselection ═══[/bold cyan]\n")
+            logger.info("\n[bold cyan]═══ Step 3: Paper Downselection ═══[/bold cyan]\n")
 
             if not scholar_results or not scholar_results.papers:
                 logger.debug(
@@ -190,13 +194,13 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> None:
                     {json.dumps(papers_data, indent=2)}
                 """).strip()
 
-                logger.debug(
+                logger.info(
                     f"[dim]Sending {len(scholar_results.papers)} papers to downselector..."
                     "[/dim]"
                 )
                 result = await downselector_agent.run(prompt, deps=deps)
                 paper_selection = result.output
-                logger.debug(
+                logger.info(
                     f"[bold green]✓ Selected {paper_selection.selected_count} papers"
                     f"[/bold green]"
                 )
@@ -210,7 +214,7 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> None:
             # ============================================================
             # STEP 4: Recruiting Status Check
             # ============================================================
-            logger.debug("\n[bold cyan]═══ Step 4: Recruiting Status ═══[/bold cyan]\n")
+            logger.info("\n[bold cyan]═══ Step 4: Recruiting Status ═══[/bold cyan]\n")
 
             # Pass the full extraction to the recruiting agent
             extraction_dict = extraction.model_dump(mode='json')
@@ -224,12 +228,12 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> None:
             recruiting_insight = recruiting_result.output
 
             if recruiting_insight.is_recruiting:
-                logger.debug(
+                logger.info(
                     f"[bold green]✓ Recruiting:[/bold green] "
                     f"confidence={recruiting_insight.confidence:.2f}"
                 )
             else:
-                logger.debug(
+                logger.info(
                     f"[bold yellow]✗ Not recruiting:[/bold yellow] "
                     f"confidence={recruiting_insight.confidence:.2f}"
                 )
@@ -239,7 +243,7 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> None:
             # ============================================================
             # STEP 5: Main Agent Synthesis
             # ============================================================
-            logger.debug("\n[bold cyan]═══ Step 5: Research Synthesis ═══[/bold cyan]\n")
+            logger.info("\n[bold cyan]═══ Step 5: Research Synthesis ═══[/bold cyan]\n")
 
             prompt = (
                 f"Synthesize a research report for this professor.\n\n"
@@ -259,7 +263,7 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> None:
             result = await main_agent.run(prompt, deps=deps)
             synthesis = result.output
 
-            logger.debug(
+            logger.info(
                 f"[bold green]✓ Synthesis complete:[/bold green] "
                 f"score={synthesis.score:.0f}"
             )
@@ -269,7 +273,7 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> None:
             # ============================================================
             # STEP 6: Assemble & Save Report
             # ============================================================
-            logger.debug("\n[bold cyan]═══ Step 6: Save Report ═══[/bold cyan]\n")
+            logger.info("\n[bold cyan]═══ Step 6: Save Report ═══[/bold cyan]\n")
 
             # Assemble final report from synthesis + paper reviews
             research_report = ResearchReport(
@@ -280,9 +284,16 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> None:
                 created_at=datetime.now(),
             )
 
+            # Format to markdown
+            from src.report_formatter import format_report
+            markdown_report = format_report(research_report)
+
+            # Save to disk
             output_dir = Path("reports")
             report_path = save_report(research_report, output_dir)
-            logger.debug(f"[bold green]✓ Report saved:[/bold green] {report_path}\n")
+            logger.info(f"[bold green]✓ Report saved:[/bold green] {report_path}\n")
+
+            return markdown_report  # Return markdown string directly
 
 
 @app.command(name="research-url")

@@ -1,3 +1,4 @@
+import os
 import tomllib
 from pathlib import Path
 
@@ -94,19 +95,50 @@ class AppConfig(BaseSettings):
         return self.secrets.google_ai_studio_api_key
 
 
-def _load_settings() -> AppConfig:
-    """Load settings from default config path."""
-    config_path = Path("config.toml")
+def _resolve_paths(data: dict, base_dir: Path) -> dict:
+    """Resolve all path fields relative to base_dir."""
+    if isinstance(data, dict):
+        result = {}
+        for key, value in data.items():
+            if (key.endswith("_path") or key.endswith("_file")) and isinstance(value, str):
+                # Resolve path relative to base_dir
+                result[key] = str(base_dir / value)
+            elif isinstance(value, dict):
+                result[key] = _resolve_paths(value, base_dir)
+            else:
+                result[key] = value
+        return result
+    return data
+
+
+def _load_settings(config_path: Path | None = None) -> AppConfig:
+    """Load settings from config path or default."""
+    if config_path is None:
+        config_path = Path("config.toml")
     if not config_path.exists():
         raise FileNotFoundError(f"Config file not found: {config_path.absolute()}")
+
+    # Resolve paths relative to config file location
+    base_dir = config_path.parent.absolute()
     data = tomllib.loads(config_path.read_text(encoding="utf-8"))
+    data = _resolve_paths(data, base_dir)
+
     return AppConfig.model_validate(data)
 
 
 def load_config(path: Path) -> AppConfig:
     """Load config from a specific path."""
-    data = tomllib.loads(Path(path).read_text(encoding="utf-8"))
+    config_path = Path(path).absolute()
+    base_dir = config_path.parent
+
+    data = tomllib.loads(config_path.read_text(encoding="utf-8"))
+    data = _resolve_paths(data, base_dir)
+
     return AppConfig.model_validate(data)
 
 
-SETTINGS: AppConfig = _load_settings()
+# Allow override via environment variable or keep default
+CONFIG_PATH = os.getenv("ANALYZER_CONFIG_PATH")
+SETTINGS: AppConfig = _load_settings(
+    Path(CONFIG_PATH) if CONFIG_PATH else None
+)
