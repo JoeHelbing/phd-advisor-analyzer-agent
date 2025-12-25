@@ -1,0 +1,51 @@
+[project]
+name = "professor-research"
+version = "0.2.0"
+description = "Multi-Agent Professor Research System for PhD Advisor Fit Analysis"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic-ai>=1.35.0",
+    "pydantic-settings>=2.12.0",
+    "openai>=1.50.0",
+    "polars>=1.0.0",
+    "httpx>=0.27.0",
+    "beautifulsoup4>=4.12.0",
+    "tenacity>=9.0.0",
+    "typer>=0.12.0",
+    "rich>=14.0.0",
+    "python-dotenv>=1.0.0",
+    "crawl4ai>=0.7.2",
+    "pypdf>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
+    "pyright>=1.1.350",
+]
+
+[project.scripts]
+research = "src.main:app"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
+    "pyright>=1.1.350",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
