@@ -18,7 +18,7 @@ Papers are already sorted chronologically (most recent first).
 
 1. Review the papers provided in the user prompt
 2. Only consider papers with `pdf_url` present (skip any without PDFs)
-3. **Select up to 10 papers** that best help evaluate this professor for PhD application fit:
+3. **Select up to 6 papers** that best help evaluate this professor for PhD application fit:
    - Balance **relevance to the user's research interests (SOP)** with **paper importance**
    - Use `citation_count` as a proxy for impact when available (higher citations suggest influential work)
    - Prioritize recent work (last 2-3 years) that's highly relevant to the SOP
@@ -41,7 +41,7 @@ Balance these factors:
 - **Impact** (secondary): Citation count, venue quality, your knowledge of the work
 - **Recency** (tertiary): Prefer recent work, but don't ignore important older papers
 
-**Good mix:** 6-8 highly relevant recent papers + 2-4 high-impact papers (even if older/broader)
+**Good mix:** 3-4 highly relevant recent papers + 1-2 high-impact papers (even if older/broader)
 
 ## Rules
 
