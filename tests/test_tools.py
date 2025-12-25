@@ -122,7 +122,7 @@ async def test_fetch_scholar_papers_enforces_minimum_duration(monkeypatch):
         <div class="gs_gray">Venue</div>
         <td class="gsc_a_y"><span>2024</span></td>
     </tr>
-    """
+    """  # noqa: E501
     citation_html = """
     <div class="gsc_oci_field">Description</div>
     <div>Interesting work</div>

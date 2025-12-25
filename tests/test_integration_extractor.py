@@ -2,14 +2,14 @@
 
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT))
 
-from src.schema import ExtractedLink, FacultyPageExtraction, ResearchDeps
+from src.schema import ResearchDeps
 
 
 @pytest.fixture

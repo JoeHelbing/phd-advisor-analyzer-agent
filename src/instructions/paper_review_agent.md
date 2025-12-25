@@ -10,7 +10,9 @@ Summarize the provided paper with a **specific focus on alignment with the user'
 
 ## Output Format
 
-Provide a structured summary with the following sections:
+Provide a structured summary with the following sections. **Do NOT include a title heading** - start directly with section 1:
+
+**Important:** Do not add any title heading like "# Paper Review:" or similar. The report formatter will add the paper title. Start your response directly with "### 1. Paper Gist".
 
 ### 1. Paper Gist (1-2 sentences)
 Brief overview of what the paper is about and its main contribution.

@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from src.markdown_normalizer import escape_table_cell, normalize_markdown
 from src.schema import ResearchReport
 
 
@@ -26,18 +27,79 @@ def format_report(report: ResearchReport) -> str:
         f"**Score:** {syn.score:.0f}/100",
         f"**Generated:** {report.created_at.strftime('%Y-%m-%d %H:%M:%S')}",
         "",
+        # Score breakdown section
+        "## Score Breakdown",
+        "",
+        "| Component | Score | Explanation |",
+        "|-----------|-------|-------------|",
+        (
+            f"| Research Alignment | "
+            f"{syn.score_breakdown.research_alignment.score:.0f}/"
+            f"{syn.score_breakdown.research_alignment.max_score:.0f} | "
+            f"{escape_table_cell(syn.score_breakdown.research_alignment.explanation)} |"
+        ),
+        (
+            f"| Methods Overlap | "
+            f"{syn.score_breakdown.methods_overlap.score:.0f}/"
+            f"{syn.score_breakdown.methods_overlap.max_score:.0f} | "
+            f"{escape_table_cell(syn.score_breakdown.methods_overlap.explanation)} |"
+        ),
+        (
+            f"| Publication Quality | "
+            f"{syn.score_breakdown.publication_quality.score:.0f}/"
+            f"{syn.score_breakdown.publication_quality.max_score:.0f} | "
+            f"{escape_table_cell(syn.score_breakdown.publication_quality.explanation)} |"
+        ),
+        (
+            f"| Recent Activity | "
+            f"{syn.score_breakdown.recent_activity.score:.0f}/"
+            f"{syn.score_breakdown.recent_activity.max_score:.0f} | "
+            f"{escape_table_cell(syn.score_breakdown.recent_activity.explanation)} |"
+        ),
+        (
+            f"| Funding | "
+            f"{syn.score_breakdown.funding.score:.0f}/"
+            f"{syn.score_breakdown.funding.max_score:.0f} | "
+            f"{escape_table_cell(syn.score_breakdown.funding.explanation)} |"
+        ),
+        (
+            f"| Recruiting | "
+            f"{syn.score_breakdown.recruiting_status.score:.0f}/"
+            f"{syn.score_breakdown.recruiting_status.max_score:.0f} | "
+            f"{escape_table_cell(syn.score_breakdown.recruiting_status.explanation)} |"
+        ),
+        (
+            f"| Advising & Lab | "
+            f"{syn.score_breakdown.advising_and_lab.score:.0f}/"
+            f"{syn.score_breakdown.advising_and_lab.max_score:.0f} | "
+            f"{escape_table_cell(syn.score_breakdown.advising_and_lab.explanation)} |"
+        ),
+        (
+            f"| Program Fit | "
+            f"{syn.score_breakdown.program_fit.score:.0f}/"
+            f"{syn.score_breakdown.program_fit.max_score:.0f} | "
+            f"{escape_table_cell(syn.score_breakdown.program_fit.explanation)} |"
+        ),
+        (
+            f"| Red Flags | "
+            f"{syn.score_breakdown.red_flags.score:.0f}/"
+            f"{syn.score_breakdown.red_flags.max_score:.0f} | "
+            f"{escape_table_cell(syn.score_breakdown.red_flags.explanation)} |"
+        ),
+        f"| **Total** | **{syn.score:.0f}/100** | |",
+        "",
         "## Verdict",
-        syn.verdict,
+        normalize_markdown(syn.verdict),
         "",
     ]
 
     if syn.red_flags:
-        parts.extend(["## ⚠️ Red Flags", syn.red_flags, ""])
+        parts.extend(["## ⚠️ Red Flags", normalize_markdown(syn.red_flags), ""])
 
-    parts.extend(["## Research Fit", syn.research_fit, ""])
+    parts.extend(["## Research Fit", normalize_markdown(syn.research_fit), ""])
 
     if syn.highlighted_papers:
-        parts.extend(["## Highlighted Papers", syn.highlighted_papers, ""])
+        parts.extend(["## Highlighted Papers", normalize_markdown(syn.highlighted_papers), ""])
 
     parts.extend([
         "## Recruiting",
@@ -49,19 +111,20 @@ def format_report(report: ResearchReport) -> str:
     ])
 
     if syn.advising_and_lab:
-        parts.extend(["## Advising & Lab", syn.advising_and_lab, ""])
+        parts.extend(["## Advising & Lab", normalize_markdown(syn.advising_and_lab), ""])
 
-    parts.extend(["## Activity", syn.activity, ""])
+    parts.extend(["## Activity", normalize_markdown(syn.activity), ""])
 
     if report.paper_reviews:
         parts.append("## Paper Reviews")
         for i, r in enumerate(report.paper_reviews, 1):
             # Format paper header with metadata
-            parts.append(f"### {i}. {r.metadata.title}")
+            parts.append(f"### {i}. Paper Title: {r.metadata.title}")
+            parts.append("")  # Blank line after title
 
             # Authors
             if r.metadata.authors:
-                parts.append(f"**Authors:** {r.metadata.authors}")
+                parts.append(f"- **Authors:** {r.metadata.authors}")
 
             # Venue and year
             venue_parts = []
@@ -70,22 +133,22 @@ def format_report(report: ResearchReport) -> str:
             if r.metadata.published_at:
                 venue_parts.append(r.metadata.published_at)
             if venue_parts:
-                parts.append(f"**Published:** {' • '.join(venue_parts)}")
+                parts.append(f"- **Published:** {' • '.join(venue_parts)}")
 
             # URL
             if r.metadata.url:
-                parts.append(f"**URL:** {r.metadata.url}")
+                parts.append(f"- **URL:** {r.metadata.url}")
 
             # Citation count
             if r.metadata.citation_count is not None:
-                parts.append(f"**Citations:** {r.metadata.citation_count}")
+                parts.append(f"- **Citations:** {r.metadata.citation_count}")
+
+            # Summary (normalize to fix title headings, bullets, etc.)
+            parts.extend(["", normalize_markdown(r.summary_for_user), ""])
 
             # Abstract
             if r.abstract:
-                parts.extend(["", "**Abstract:**", r.abstract])
-
-            # Summary
-            parts.extend(["", "**Summary:**", r.summary_for_user, ""])
+                parts.extend(["", "**Abstract:**", normalize_markdown(r.abstract)])
 
     return "\n".join(parts)
 

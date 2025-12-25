@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import sys
-from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
 from crawl4ai import AsyncWebCrawler as BaseCrawler
+from pydantic import HttpUrl
 from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, UserPromptPart
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,8 +20,9 @@ from src.schema import (
     FacultyPageExtraction,
     RecruitingInsight,
     ResearchPlan,
-    ResearchReport,
     ResearchSynthesis,
+    ScoreBreakdown,
+    ScoreComponent,
 )
 
 
@@ -63,15 +63,15 @@ class FakeAgentResult:
 
 def test_run_research_url_triggers_main_agent(monkeypatch, capsys, caplog):
     extraction = FacultyPageExtraction(
-        faculty_page_url="https://faculty.example.edu",
+        faculty_page_url=HttpUrl("https://faculty.example.edu"),
         name="Dr. Example",
         institution="Example University",
         department="CS",
         email="dr@example.edu",
         bio_summary="Focuses on trustworthy AI.",
         research_areas=["AI", "NLP"],
-        personal_homepage="https://example.edu/home",
-        google_scholar_url="https://scholar.google.com/citations?user=abc",
+        personal_homepage=HttpUrl("https://example.edu/home"),
+        google_scholar_url=HttpUrl("https://scholar.google.com/citations?user=abc"),
         semantic_scholar_url=None,
         dblp_url=None,
         orcid_url=None,
@@ -79,12 +79,12 @@ def test_run_research_url_triggers_main_agent(monkeypatch, capsys, caplog):
         other_links=[
             ExtractedLink(
                 label="Lab",
-                url="https://example.edu/lab",
+                url=HttpUrl("https://example.edu/lab"),
                 category="lab",
                 source="faculty_profile",
             )
         ],
-        pages_crawled=["https://faculty.example.edu"],
+        pages_crawled=[HttpUrl("https://faculty.example.edu")],
     )
 
     caplog.set_level("INFO")
@@ -107,18 +107,43 @@ def test_run_research_url_triggers_main_agent(monkeypatch, capsys, caplog):
     )
     synthesis = ResearchSynthesis(
         score=82.0,
+        score_breakdown=ScoreBreakdown(
+            research_alignment=ScoreComponent(
+                score=20, max_score=25, explanation="Strong alignment."
+            ),
+            methods_overlap=ScoreComponent(
+                score=12, max_score=15, explanation="Good methods overlap."
+            ),
+            publication_quality=ScoreComponent(
+                score=12, max_score=15, explanation="Solid publication quality."
+            ),
+            recent_activity=ScoreComponent(
+                score=8, max_score=10, explanation="Active publication record."
+            ),
+            funding=ScoreComponent(
+                score=7, max_score=10, explanation="Some funding."
+            ),
+            recruiting_status=ScoreComponent(
+                score=13, max_score=15, explanation="Actively recruiting."
+            ),
+            advising_and_lab=ScoreComponent(
+                score=4, max_score=5, explanation="Good lab environment."
+            ),
+            program_fit=ScoreComponent(
+                score=5, max_score=5, explanation="Good program fit."
+            ),
+            red_flags=ScoreComponent(
+                score=1, max_score=0, explanation="Minor concerns."
+            ),
+        ),
         verdict="Strong fit for trustworthy AI research.",
+        red_flags=None,
         research_fit="Solid alignment with user interests.",
+        highlighted_papers=None,
         recruiting=recruiting,
+        advising_and_lab=None,
         activity="Active publication record.",
         plan=plan,
-    )
-    fake_report = ResearchReport(
-        professor=extraction,
-        synthesis=synthesis,
-        paper_reviews=[],
-        paper_failures=[],
-        created_at=datetime.now(),
     )
 
     fake_main_calls = {}

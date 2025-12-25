@@ -6,7 +6,7 @@ from typing import Any
 
 import httpx
 from crawl4ai import AsyncWebCrawler
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
 
 class ResearchDeps(BaseModel):
@@ -313,6 +313,75 @@ class ResearchPlan(BaseModel):
 
 
 # --------------------------------------------------------------------------
+# Score Breakdown Components
+# --------------------------------------------------------------------------
+
+
+class ScoreComponent(BaseModel):
+    """A single scoring component with value and explanation."""
+
+    score: float = Field(..., description="Points awarded for this component")
+    max_score: float = Field(..., description="Maximum possible points for this component")
+    explanation: str = Field(
+        ...,
+        min_length=10,
+        max_length=300,
+        description="One-sentence explanation for this score",
+    )
+
+
+class ScoreBreakdown(BaseModel):
+    """Structured breakdown of ResearchSynthesis score into components."""
+
+    research_alignment: ScoreComponent = Field(
+        ..., description="Alignment with SOP research topics (0-25)"
+    )
+    methods_overlap: ScoreComponent = Field(
+        ..., description="Technical skills and methodological fit (0-15)"
+    )
+    publication_quality: ScoreComponent = Field(
+        ..., description="Venue strength, citations, field influence (0-15)"
+    )
+    recent_activity: ScoreComponent = Field(
+        ..., description="Publication frequency, momentum (0-10)"
+    )
+    funding: ScoreComponent = Field(
+        ..., description="Active grants and research resources (0-10)"
+    )
+    recruiting_status: ScoreComponent = Field(
+        ..., description="Actively seeking PhD students (0-15)"
+    )
+    advising_and_lab: ScoreComponent = Field(
+        ..., description="Lab culture, student outcomes, mentorship (0-5)"
+    )
+    program_fit: ScoreComponent = Field(
+        ..., description="Department/program alignment, conditional (0-5)"
+    )
+    red_flags: ScoreComponent = Field(
+        ..., description="Penalty for concerns (-5 to 0)"
+    )
+
+    @property
+    def total_score(self) -> float:
+        """Calculate total score from components."""
+        return (
+            self.research_alignment.score
+            + self.methods_overlap.score
+            + self.publication_quality.score
+            + self.recent_activity.score
+            + self.funding.score
+            + self.recruiting_status.score
+            + self.advising_and_lab.score
+            + self.program_fit.score
+            + self.red_flags.score
+        )
+
+    def validate_total(self, expected_total: float, tolerance: float = 0.5) -> bool:
+        """Check if component scores sum to expected total."""
+        return abs(self.total_score - expected_total) <= tolerance
+
+
+# --------------------------------------------------------------------------
 # Research Synthesis (Main Agent Output)
 # --------------------------------------------------------------------------
 
@@ -322,6 +391,10 @@ class ResearchSynthesis(BaseModel):
 
     # Core output (for sorting/filtering)
     score: float = Field(..., ge=0, le=100)
+    # Structured score breakdown
+    score_breakdown: ScoreBreakdown = Field(
+        ..., description="Component-level scoring with explanations"
+    )
     verdict: str = Field(..., description="1-2 sentence summary")
     # Red flags (if any concerns)
     red_flags: str | None = Field(None, description="Any concerns, or None")
@@ -343,6 +416,16 @@ class ResearchSynthesis(BaseModel):
     activity: str = Field(..., description="Recent publications, funding, other activity signals")
     # Research plan (needed for submit_research_plan tool)
     plan: ResearchPlan
+
+    @model_validator(mode="after")
+    def validate_score_consistency(self) -> ResearchSynthesis:
+        """Ensure score matches breakdown total."""
+        if not self.score_breakdown.validate_total(self.score):
+            raise ValueError(
+                f"Score {self.score} does not match breakdown total "
+                f"{self.score_breakdown.total_score:.1f}"
+            )
+        return self
 
 
 class ResearchReport(BaseModel):

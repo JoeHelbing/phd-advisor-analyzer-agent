@@ -6,6 +6,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from pydantic import HttpUrl
 from pydantic_ai.usage import RequestUsage
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,11 +14,11 @@ sys.path.append(str(ROOT))
 
 from src import agents, tools
 from src.agents import faculty_extractor_agent
+from src.gemini_url_context import GeminiSummaryResult
 from src.schema import (
     FacultyPageExtraction,
     PaperSelection,
 )
-from src.gemini_url_context import GeminiSummaryResult
 
 
 def test_faculty_extractor_agent_exists():
@@ -41,11 +42,11 @@ def test_downselect_papers_includes_scholar_url(monkeypatch):
 
     ctx = SimpleNamespace(deps=SimpleNamespace(sop_text="My SOP text"), usage=None)
     professor = FacultyPageExtraction(
-        faculty_page_url="https://example.edu/jane-doe",
+        faculty_page_url=HttpUrl("https://example.edu/jane-doe"),
         name="Jane Doe",
         institution="Stanford University",
-        google_scholar_url="https://scholar.google.com/citations?user=abc",
-        pages_crawled=["https://example.edu/jane-doe"],
+        google_scholar_url=HttpUrl("https://scholar.google.com/citations?user=abc"),
+        pages_crawled=[HttpUrl("https://example.edu/jane-doe")],
     )
 
     result = asyncio.run(tools.downselect_papers(ctx, professor))

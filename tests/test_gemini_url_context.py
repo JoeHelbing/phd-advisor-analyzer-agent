@@ -1,7 +1,6 @@
 import asyncio
 import sys
 from pathlib import Path
-from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT))
@@ -49,7 +48,7 @@ def run(coro):
 def test_summarize_paper_handles_success():
     """Test successful paper summary via service."""
     response_dump = {
-        "url_context_metadata": {"url_metadata": [{"url_retrieval_status": "URL_RETRIEVAL_STATUS_SUCCESS"}]},
+        "url_context_metadata": {"url_metadata": [{"url_retrieval_status": "URL_RETRIEVAL_STATUS_SUCCESS"}]},  # noqa: E501
     }
     fake_client = FakeClient([FakeResponse("summary", response_dump)])
 
@@ -77,10 +76,10 @@ def test_summarize_paper_handles_success():
 def test_summarize_paper_uses_fallback(monkeypatch):
     """Test fallback to inline PDF."""
     failures = {
-        "url_context_metadata": {"url_metadata": [{"url_retrieval_status": "URL_RETRIEVAL_STATUS_ERROR"}]},
+        "url_context_metadata": {"url_metadata": [{"url_retrieval_status": "URL_RETRIEVAL_STATUS_ERROR"}]},  # noqa: E501
     }
     success = {
-        "url_context_metadata": {"url_metadata": [{"url_retrieval_status": "URL_RETRIEVAL_STATUS_SUCCESS"}]},
+        "url_context_metadata": {"url_metadata": [{"url_retrieval_status": "URL_RETRIEVAL_STATUS_SUCCESS"}]},  # noqa: E501
     }
     fake_client = FakeClient([FakeResponse("", failures), FakeResponse("from-bytes", success)])
 

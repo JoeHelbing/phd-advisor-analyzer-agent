@@ -65,7 +65,7 @@ third_party_handler.setFormatter(
 )
 
 # Add third-party handler to specific loggers
-for logger_name in ["httpx", "httpcore", "openai", "crawl4ai"]:
+for logger_name in ["httpx", "httpcore", "openai", "crawl4ai", "google_genai"]:
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
     logger.addHandler(third_party_handler)
