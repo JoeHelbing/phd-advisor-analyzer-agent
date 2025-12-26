@@ -14,32 +14,32 @@ request_timeout = 20  # seconds
 model = "openai/gpt-5.2"
 temperature = 0.4
 max_output_tokens = 20000
-instructions_path = "src/instructions/main_agent.md"
+instructions_path = "instructions/main_agent.md"
 
 [models.recruiting_agent]
 model = "openai/gpt-5.2"
 temperature = 0.3
 max_output_tokens = 10000
-instructions_path = "src/instructions/recruiting_agent.md"
+instructions_path = "instructions/recruiting_agent.md"
 
 [models.downselector_agent]
 model = "openai/gpt-5.2"
 temperature = 0.3
 max_output_tokens = 20000
-instructions_path = "src/instructions/downselector_agent.md"
+instructions_path = "instructions/downselector_agent.md"
 
 [models.faculty_extractor_agent]
 model = "openai/gpt-5.2"
 temperature = 0.2
 max_output_tokens = 10000
-instructions_path = "src/instructions/faculty_extractor_agent.md"
+instructions_path = "instructions/faculty_extractor_agent.md"
 
 [models.scholar_finder_agent]
 model = "openai/gpt-5.2"
 temperature = 0.2
 max_output_tokens = 2000
-instructions_path = "src/instructions/scholar_finder_agent.md"
+instructions_path = "instructions/scholar_finder_agent.md"
 
 [models.paper_review_agent]
 model = "gemini-3-flash-preview"  # Hardcoded in gemini_url_context.py
-instructions_path = "src/instructions/paper_review_agent.md"
+instructions_path = "instructions/paper_review_agent.md"
