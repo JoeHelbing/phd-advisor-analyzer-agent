@@ -114,7 +114,8 @@ def _resolve_paths(data: dict, base_dir: Path) -> dict:
 def _load_settings(config_path: Path | None = None) -> AppConfig:
     """Load settings from config path or default."""
     if config_path is None:
-        config_path = Path("config.toml")
+        # Default to config.toml in the same directory as this file (src/)
+        config_path = Path(__file__).parent / "config.toml"
     if not config_path.exists():
         raise FileNotFoundError(f"Config file not found: {config_path.absolute()}")
 

@@ -4,9 +4,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
-artifacts = [
-    "config.toml",
-]
 
 [project]
 name = "professor-research"
