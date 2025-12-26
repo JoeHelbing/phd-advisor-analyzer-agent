@@ -124,7 +124,14 @@ def _load_settings(config_path: Path | None = None) -> AppConfig:
     data = tomllib.loads(config_path.read_text(encoding="utf-8"))
     data = _resolve_paths(data, base_dir)
 
-    return AppConfig.model_validate(data)
+    # Create config from TOML data
+    config = AppConfig.model_validate(data)
+
+    # Force secrets to load from environment variables on Railway
+    # (nested BaseSettings don't auto-load env vars through model_validate)
+    config.secrets = SecretsConfig()
+
+    return config
 
 
 def load_config(path: Path) -> AppConfig:
