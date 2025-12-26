@@ -314,12 +314,12 @@ async def fetch_scholar_papers(
         abstract_info = f"{len(candidate.abstract)} chars" if candidate.abstract else "No abstract"
         cite_info = f"{citation_count}" if citation_count is not None else "N/A"
 
-        logger.debug("\n  [bold cyan][/bold cyan] [%s] %s", candidate.year, title)
+        logger.info("     [bold cyan]Year: [%s] Title: [%s][/bold cyan]  %s", candidate.year, title)
         logger.debug("     [dim]Authors:[/dim] %s...", candidate.authors[:100])
         logger.debug("     [dim]Venue:[/dim] %s", candidate.venue)
         logger.debug("     [dim]Citations:[/dim] %s", cite_info)
         logger.debug("     [dim]Abstract:[/dim] %s", abstract_info)
-        logger.debug("     [dim]PDF:[/dim] %s...", candidate.pdf_url[:80])
+        logger.info("     [dim]PDF:[/dim] %s...", candidate.pdf_url[:80])
 
         candidates.append(candidate)
 

@@ -290,6 +290,7 @@ async def review_paper_pdf(
 
     service = ctx.deps.gemini_service
     assert service is not None, "gemini_service must exist when not in debug mode"
+    logger.info(f"Reviewing paper: {paper_title}")
     summary = await service.summarize_paper(
         title=paper_title,
         url=paper_url,
