@@ -89,6 +89,7 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> str:
             extraction = result.output
             logger.info(f"[bold green]✓ Extracted:[/bold green] {extraction.name}")
             logger.info(f"[dim]Institution:[/dim] {extraction.institution}")
+            logger.info("Plus gobs of other links and metadata...")
             logger.debug(f"[dim]Department:[/dim] {extraction.department or 'N/A'}")
             logger.debug(
                 f"[dim]Scholar URL:[/dim] {extraction.google_scholar_url or 'Not found'}\n"
