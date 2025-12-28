@@ -115,7 +115,6 @@ def test_paper_selection_includes_failures():
         url_context_metadata={"attempts": 1},
     )
     failure = PaperFailure(
-        index=2,
         title="Missing PDF",
         url="https://example.com/missing.pdf",
         status="URL_RETRIEVAL_STATUS_ERROR",
@@ -157,7 +156,6 @@ def test_research_report_accepts_failures():
         summary_for_user="Summary",
     )
     failure = PaperFailure(
-        index=1,
         title="Missing PDF",
         url="https://example.com/missing.pdf",
         status="URL_RETRIEVAL_STATUS_ERROR",

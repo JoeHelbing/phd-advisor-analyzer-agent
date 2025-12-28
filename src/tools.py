@@ -15,6 +15,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from src.schema import (
     CachedFetchResult,
     FetchResult,
+    PaperFailure,
     PaperMetadata,
     PaperReview,
     RecruitingInsight,
@@ -243,7 +244,7 @@ async def review_paper_pdf(
     year: str | None = None,
     abstract: str | None = None,
     citation_count: int | None = None,
-) -> PaperReview:
+) -> PaperReview | PaperFailure:
     """Review a single academic paper from a PDF URL.
 
     The Scholar metadata (authors, venue, year, abstract, citation_count) is
@@ -262,10 +263,7 @@ async def review_paper_pdf(
         citation_count: Number of citations (from Scholar scrape).
 
     Returns:
-        PaperReview with Gemini-generated summary and Scholar metadata.
-
-    Raises:
-        RuntimeError: If Gemini URL Context fails.
+        PaperReview on success, PaperFailure if PDF cannot be accessed or processed.
     """
     # Debug mode: return mock data without calling Gemini
     if ctx.deps and ctx.deps.debug_skip_reviews:
@@ -291,42 +289,64 @@ async def review_paper_pdf(
     service = ctx.deps.gemini_service
     assert service is not None, "gemini_service must exist when not in debug mode"
     logger.info(f"Reviewing paper: {paper_title}")
-    summary = await service.summarize_paper(
-        title=paper_title,
-        url=paper_url,
-        interests=ctx.deps.sop_text,
-    )
-    if summary.error:
-        raise RuntimeError(
-            f"Gemini URL Context failed ({summary.status or 'unknown'}): {summary.error}"
+
+    try:
+        summary = await service.summarize_paper(
+            title=paper_title,
+            url=paper_url,
+            interests=ctx.deps.sop_text,
         )
-    metadata = PaperMetadata(
-        title=paper_title,
-        source="gemini_url_context",
-        url=paper_url,
-        authors=authors or "",
-        venue=venue,
-        published_at=year,
-        citation_count=citation_count,
-    )
-    usage = {
-        "input_tokens": summary.usage.input_tokens,
-        "output_tokens": summary.usage.output_tokens,
-        "cache_read_tokens": summary.usage.cache_read_tokens,
-        "details": summary.usage.details,
-    }
-    usage = {k: v for k, v in usage.items() if v}
-    return PaperReview(
-        metadata=metadata,
-        confirmed_author=False,
-        affiliation_match=False,
-        abstract=abstract or "",
-        summary_for_user=summary.text or "",
-        url_context_status=summary.status,
-        url_context_strategy=summary.strategy,
-        url_context_metadata=summary.metadata,
-        usage_metadata=usage if usage else None,
-    )
+
+        # If Gemini service returned an error, return PaperFailure instead of raising
+        if summary.error:
+            logger.warning(
+                f"Paper review failed for '{paper_title}': {summary.error} "
+                f"(status: {summary.status or 'unknown'})"
+            )
+            return PaperFailure(
+                title=paper_title,
+                url=paper_url,
+                status=summary.status,
+                reason=summary.error,
+            )
+
+        metadata = PaperMetadata(
+            title=paper_title,
+            source="gemini_url_context",
+            url=paper_url,
+            authors=authors or "",
+            venue=venue,
+            published_at=year,
+            citation_count=citation_count,
+        )
+        usage = {
+            "input_tokens": summary.usage.input_tokens,
+            "output_tokens": summary.usage.output_tokens,
+            "cache_read_tokens": summary.usage.cache_read_tokens,
+            "details": summary.usage.details,
+        }
+        usage = {k: v for k, v in usage.items() if v}
+        return PaperReview(
+            metadata=metadata,
+            confirmed_author=False,
+            affiliation_match=False,
+            abstract=abstract or "",
+            summary_for_user=summary.text or "",
+            url_context_status=summary.status,
+            url_context_strategy=summary.strategy,
+            url_context_metadata=summary.metadata,
+            usage_metadata=usage if usage else None,
+        )
+
+    except Exception as e:
+        # Catch any other errors (network issues, unexpected exceptions, etc.)
+        logger.error(f"Unexpected error reviewing paper '{paper_title}': {e}")
+        return PaperFailure(
+            title=paper_title,
+            url=paper_url,
+            status=None,
+            reason=f"Unexpected error: {str(e)}",
+        )
 
 
 # --------------------------------------------------------------------------

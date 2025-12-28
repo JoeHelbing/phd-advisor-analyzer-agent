@@ -156,7 +156,6 @@ class PaperReview(BaseModel):
 
 
 class PaperFailure(BaseModel):
-    index: int
     title: str
     url: str | None = None
     status: str | None = None
