@@ -191,7 +191,7 @@ def test_run_research_url_triggers_main_agent(monkeypatch, capsys, caplog):
         )
     monkeypatch.setattr("src.main.fetch_scholar_papers", fake_fetch_scholar_papers)
 
-    asyncio.run(cli_main._run_research_url("https://faculty.example.edu"))
+    asyncio.run(cli_main._run_research_url("https://faculty.example.edu", debug_skip_reviews=True))
 
     # Verify the agents were called with the right data
     assert "Dr. Example" in fake_main_calls["prompt"]

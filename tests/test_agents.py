@@ -40,7 +40,7 @@ def test_downselect_papers_includes_scholar_url(monkeypatch):
 
     monkeypatch.setattr(agents, "downselector_agent", SimpleNamespace(run=fake_run))
 
-    ctx = SimpleNamespace(deps=SimpleNamespace(sop_text="My SOP text"), usage=None)
+    ctx = SimpleNamespace(deps=SimpleNamespace(research_interests="My research interests"), usage=None)
     professor = FacultyPageExtraction(
         faculty_page_url=HttpUrl("https://example.edu/jane-doe"),
         name="Jane Doe",
@@ -53,7 +53,7 @@ def test_downselect_papers_includes_scholar_url(monkeypatch):
     assert result.selected_count == 0
     assert "Google Scholar:" in fake_run.prompt
     assert "https://scholar.google.com/citations?user=abc" in fake_run.prompt
-    assert "My SOP text" in fake_run.prompt
+    assert "My research interests" in fake_run.prompt
 
 
 def test_review_paper_pdf_uses_gemini_service():
@@ -76,7 +76,7 @@ def test_review_paper_pdf_uses_gemini_service():
 
     ctx = SimpleNamespace(
         deps=SimpleNamespace(
-            sop_text="interests",
+            research_interests="interests",
             gemini_service=FakeService(),
             debug_skip_reviews=False,
         ),
@@ -115,7 +115,7 @@ def test_review_paper_pdf_raises_when_gemini_service_fails():
 
     ctx = SimpleNamespace(
         deps=SimpleNamespace(
-            sop_text="interests",
+            research_interests="interests",
             gemini_service=FakeService(),
             debug_skip_reviews=False,
         ),

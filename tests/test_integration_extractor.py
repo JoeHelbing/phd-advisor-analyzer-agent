@@ -20,5 +20,5 @@ def mock_deps():
         crawler=MagicMock(),
         google_api_key="test-key",
         google_cse_id="test-cse",
-        sop_text="interests",
+        research_interests="interests",
     )

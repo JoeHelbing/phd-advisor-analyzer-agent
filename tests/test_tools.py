@@ -110,7 +110,10 @@ def _response(url: str, *, status: int = 200, text: str = "", headers: dict | No
 
 @pytest.mark.asyncio
 async def test_fetch_scholar_papers_enforces_minimum_duration(monkeypatch):
+    import src.scholar as scholar
+    import src.schema as schema
     profile_url = "https://scholar.google.com/citations?user=test"
+    profile_url_with_params = "https://scholar.google.com/citations?user=test&hl=en&sortby=pubdate&cstart=0&pagesize=1"
     citation_url = (
         "https://scholar.google.com/citations?view_op=view_citation&hl=en"
         "&user=test&citation_for_view=test:1"
@@ -129,21 +132,19 @@ async def test_fetch_scholar_papers_enforces_minimum_duration(monkeypatch):
     <a href="https://example.com/paper.pdf"><span class="gsc_vcd_title_ggt">PDF</span></a>
     """
     responses = {
-        profile_url: [_response(profile_url, text=profile_html)],
+        profile_url_with_params: [_response(profile_url_with_params, text=profile_html)],
         citation_url: [_response(citation_url, text=citation_html)],
     }
     client = FakeHttpClient(responses)
     ctx = _make_ctx(client)
 
     clock = FakeClock()
-    monkeypatch.setattr(tools.asyncio, "sleep", clock.sleep)
-    monkeypatch.setattr(tools.time, "perf_counter", clock.perf_counter)
+    monkeypatch.setattr(scholar.asyncio, "sleep", clock.sleep)
+    monkeypatch.setattr(schema.time, "perf_counter", clock.perf_counter)
 
     result = await fetch_scholar_papers(
-        ctx,
-        professor_name="Test",
-        institution="Unit",
-        google_scholar_url=profile_url,
+        ctx.deps,
+        profile_url,
         max_papers=1,
         years_back=5,
     )
@@ -154,35 +155,36 @@ async def test_fetch_scholar_papers_enforces_minimum_duration(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_fetch_scholar_papers_handles_rate_limits(monkeypatch, caplog):
+    import src.scholar as scholar
+    import src.schema as schema
     profile_url = "https://scholar.google.com/citations?user=test"
+    profile_url_with_params = "https://scholar.google.com/citations?user=test&hl=en&sortby=pubdate&cstart=0&pagesize=1"
     throttled_responses = [
         _response(
-            profile_url,
+            profile_url_with_params,
             status=429,
             text="",
             headers={"Retry-After": "1"},
         )
         for _ in range(4)
     ]
-    responses = {profile_url: throttled_responses}
+    responses = {profile_url_with_params: throttled_responses}
     client = FakeHttpClient(responses)
     ctx = _make_ctx(client)
 
     clock = FakeClock()
-    monkeypatch.setattr(tools.asyncio, "sleep", clock.sleep)
-    monkeypatch.setattr(tools.time, "perf_counter", clock.perf_counter)
+    monkeypatch.setattr(scholar.asyncio, "sleep", clock.sleep)
+    monkeypatch.setattr(schema.time, "perf_counter", clock.perf_counter)
 
-    caplog.set_level(logging.WARNING, logger="src.tools")
+    caplog.set_level(logging.WARNING, logger="src.scholar")
 
     result = await fetch_scholar_papers(
-        ctx,
-        professor_name="Test",
-        institution="Unit",
-        google_scholar_url=profile_url,
+        ctx.deps,
+        profile_url,
         max_papers=1,
         years_back=5,
     )
 
     assert result.papers == []
-    assert "throttled" in caplog.text
+    assert "throttled" in caplog.text or "429" in caplog.text
     assert clock.current >= 60.0

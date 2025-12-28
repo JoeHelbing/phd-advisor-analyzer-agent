@@ -17,6 +17,6 @@ def test_parse_profile_extracts_rows_and_links():
 
 def test_parse_citation_extracts_pdf_and_abstract():
     html = Path("tests/fixtures/scholar_citation.html").read_text()
-    fields, pdf_url = parse_citation_html(html)
+    fields, pdf_url, citation_count = parse_citation_html(html)
     assert pdf_url == "https://arxiv.org/pdf/2507.00163"
     assert fields["Description"].startswith("This paper")

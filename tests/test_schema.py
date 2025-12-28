@@ -169,7 +169,7 @@ def test_research_report_accepts_failures():
     )
     breakdown = ScoreBreakdown(
         research_alignment=ScoreComponent(
-            score=22, max_score=25, explanation="Strong NLP alignment with SOP."
+            score=22, max_score=25, explanation="Strong NLP alignment with research interests."
         ),
         methods_overlap=ScoreComponent(
             score=13, max_score=15, explanation="Core NLP methods match."
@@ -221,7 +221,7 @@ def test_research_report_accepts_failures():
     assert report.paper_failures[0].reason == "403"
 
 
-def test_research_deps_accepts_sop_text():
+def test_research_deps_accepts_research_interests():
     from unittest.mock import MagicMock
 
     import httpx
@@ -232,9 +232,9 @@ def test_research_deps_accepts_sop_text():
         crawler=MagicMock(spec=AsyncWebCrawler),
         google_api_key="key",
         google_cse_id="cse",
-        sop_text="interests",
+        research_interests="interests",
     )
-    assert deps.sop_text == "interests"
+    assert deps.research_interests == "interests"
 
 
 class TestScoreComponent:
@@ -243,7 +243,7 @@ class TestScoreComponent:
         component = ScoreComponent(
             score=25.0,
             max_score=35.0,
-            explanation="Strong alignment with SOP research topics and methodology.",
+            explanation="Strong alignment with user's research topics and methodology.",
         )
         assert component.score == 25.0
         assert component.max_score == 35.0
@@ -269,7 +269,7 @@ class TestScoreBreakdown:
         """Test ScoreBreakdown total_score property."""
         breakdown = ScoreBreakdown(
             research_alignment=ScoreComponent(
-                score=23, max_score=25, explanation="Strong topic alignment with SOP research interests."  # noqa: E501
+                score=23, max_score=25, explanation="Strong topic alignment with user's research interests."  # noqa: E501
             ),
             methods_overlap=ScoreComponent(
                 score=13, max_score=15, explanation="Core technical methods match perfectly."
@@ -317,7 +317,7 @@ class TestResearchSynthesisScoring:
         )
         breakdown = ScoreBreakdown(
             research_alignment=ScoreComponent(
-                score=20, max_score=25, explanation="Good alignment with SOP topics."
+                score=20, max_score=25, explanation="Good alignment with user's research topics."
             ),
             methods_overlap=ScoreComponent(
                 score=12, max_score=15, explanation="Strong methods overlap."

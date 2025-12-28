@@ -2,11 +2,12 @@ import asyncio
 import sys
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT))
 
-from src.tools import fetch_scholar_papers  # noqa: E402
+from src.scholar import fetch_scholar_papers  # noqa: E402
 
 
 class DummyClient:
@@ -40,7 +41,13 @@ class DummyResponse:
         return self._json
 
 
-def test_fetch_scholar_papers_filters_pdf_only():
+def test_fetch_scholar_papers_filters_pdf_only(monkeypatch):
+    # Mock asyncio.sleep to avoid 60-second wait
+    import src.scholar as scholar
+    import src.schema as schema
+    monkeypatch.setattr(scholar.asyncio, "sleep", AsyncMock())
+    monkeypatch.setattr(schema.time, "perf_counter", lambda: 0.0)
+
     search_json = {
         "items": [{"link": "https://scholar.google.com/citations?user=abc"}],
         "searchInformation": {"totalResults": "1"},
@@ -60,20 +67,34 @@ def test_fetch_scholar_papers_filters_pdf_only():
     )
     client = DummyClient(
         [
-            DummyResponse("", json_data=search_json),
             DummyResponse(profile_html),
             DummyResponse(citation_html),
         ]
     )
-    deps = SimpleNamespace(http_client=client, google_api_key="k", google_cse_id="c")
-    ctx = SimpleNamespace(deps=deps)
+    from src.schema import ResearchDeps
+    from unittest.mock import MagicMock
+    deps = ResearchDeps.model_construct(
+        http_client=client,
+        crawler=MagicMock(),
+        google_api_key="k",
+        google_cse_id="c",
+        research_interests="",
+    )
 
-    result = asyncio.run(fetch_scholar_papers(ctx, "Ari", "UChicago", max_papers=1, years_back=4))
+    result = asyncio.run(
+        fetch_scholar_papers(deps, "https://scholar.google.com/citations?user=abc", max_papers=1, years_back=4)
+    )
     assert len(result.papers) == 1
     assert result.papers[0].pdf_url == "https://arxiv.org/pdf/2507.00163"
 
 
-def test_fetch_scholar_papers_uses_profile_url_when_provided():
+def test_fetch_scholar_papers_uses_profile_url_when_provided(monkeypatch):
+    # Mock asyncio.sleep to avoid 60-second wait
+    import src.scholar as scholar
+    import src.schema as schema
+    monkeypatch.setattr(scholar.asyncio, "sleep", AsyncMock())
+    monkeypatch.setattr(schema.time, "perf_counter", lambda: 0.0)
+
     profile_html = (
         "<tr class=\"gsc_a_tr\">"
         "<a class=\"gsc_a_at\" href=\"/citations?view_op=view_citation\">Test Paper</a>"
@@ -93,15 +114,20 @@ def test_fetch_scholar_papers_uses_profile_url_when_provided():
             DummyResponse(citation_html),
         ]
     )
-    deps = SimpleNamespace(http_client=client, google_api_key="k", google_cse_id="c")
-    ctx = SimpleNamespace(deps=deps)
+    from src.schema import ResearchDeps
+    from unittest.mock import MagicMock
+    deps = ResearchDeps.model_construct(
+        http_client=client,
+        crawler=MagicMock(),
+        google_api_key="k",
+        google_cse_id="c",
+        research_interests="",
+    )
 
     result = asyncio.run(
         fetch_scholar_papers(
-            ctx,
-            "Ari",
-            "UChicago",
-            google_scholar_url="https://scholar.google.com/citations?user=abc",
+            deps,
+            "https://scholar.google.com/citations?user=abc",
             max_papers=1,
             years_back=4,
         )
