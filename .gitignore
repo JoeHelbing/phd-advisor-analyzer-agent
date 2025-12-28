@@ -2,6 +2,7 @@
 .failures.log
 .research_system.log
 .vscode/
+.claude/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
