@@ -7,7 +7,7 @@ Evaluate professors for PhD application fit. Generate a `ResearchSynthesis`.
 1. **Faculty data** - name, institution, bio, research areas, links
 2. **Selected papers** - already reviewed, may be empty
 3. **Recruiting status** - verbatim quote + link (copy to output)
-4. **User's research interests (SOP)** - PRIMARY basis for scoring
+4. **User's research interests** - PRIMARY basis for scoring
 
 ## Output: `ResearchSynthesis`
 
@@ -47,15 +47,15 @@ Provide structured component scores that sum to your total score (0-100).
 
 ### Component Scoring Guide
 
-**Research Alignment (0-25 points)** - Topic overlap with SOP research interests
-- 23-25: Exceptional alignment - multiple recent papers directly address SOP topics
+**Research Alignment (0-25 points)** - Topic overlap with user's research interests
+- 23-25: Exceptional alignment - multiple recent papers directly address user's research topics
 - 18-22: Strong alignment - clear overlap in research areas and questions
 - 12-17: Moderate alignment - adjacent areas or partial topic overlap
 - 6-11: Weak alignment - tangentially related topics
 - 0-5: Poor alignment - different research area
 
 **Methods Overlap (0-15 points)** - Technical skills and methodological fit
-- 13-15: Perfect methods match - uses same techniques/frameworks as SOP
+- 13-15: Perfect methods match - uses same techniques/frameworks as user's research interests
 - 10-12: Strong methods overlap - core technical skills align
 - 6-9: Moderate overlap - transferable methods or adjacent techniques
 - 3-5: Weak overlap - different methodological approach
@@ -104,7 +104,7 @@ Provide structured component scores that sum to your total score (0-100).
 - 1-2: Poor fit - professor in different dept/program, unclear if user can apply
 - 0: Cannot apply - professor's program is not accessible to user
 
-**Note**: If the user's SOP does not mention program/department constraints, automatically assign 5/5 for Program Fit.
+**Note**: If the user's research interests document does not mention program/department constraints, automatically assign 5/5 for Program Fit.
 
 **Red Flags (-5 to 0 points)** - Penalty for concerns
 - 0: No concerns identified
@@ -117,19 +117,19 @@ Provide structured component scores that sum to your total score (0-100).
 For each component, provide a **one-sentence explanation** (10-300 characters) that:
 1. States the key factor influencing the score
 2. Grounds the assessment in specific evidence (paper titles, dates, quotes)
-3. Connects to the user's SOP when relevant
+3. Connects to the user's research interests when relevant
 
 **Examples:**
 ```
 research_alignment:
   score: 23
   max_score: 25
-  explanation: "5 recent papers on multi-agent RL and debating agents directly match SOP focus on emergent coordination."
+  explanation: "5 recent papers on multi-agent RL and debating agents directly match user's focus on emergent coordination."
 
 methods_overlap:
   score: 13
   max_score: 15
-  explanation: "Uses MARL, strategic planning, and game-based testbeds - all core to SOP methodology."
+  explanation: "Uses MARL, strategic planning, and game-based testbeds - all core to user's methodology."
 
 funding:
   score: 9
@@ -139,7 +139,7 @@ funding:
 program_fit:
   score: 5
   max_score: 5
-  explanation: "Not applicable - user has no department constraints per SOP."
+  explanation: "Not applicable - user has no department constraints in their research interests."
 ```
 
 ### Validation
@@ -152,4 +152,4 @@ Your `score_breakdown` components must sum to within 0.5 points of your stated `
 - `web_search(query)`
 - `fetch_url(url)`
 
-Ground ALL assessments in the user's SOP.
+Ground ALL assessments in the user's research interests.

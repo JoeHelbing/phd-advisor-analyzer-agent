@@ -138,7 +138,7 @@ class GeminiPaperReviewService:
         Args:
             title: Paper title for context
             url: Direct URL to paper PDF
-            interests: User's research interests (SOP text)
+            interests: User's research interests document
 
         Returns:
             GeminiSummaryResult with summary text, status, and metadata
@@ -359,7 +359,7 @@ class GeminiPaperReviewService:
         Args:
             title: Paper title
             url: Direct PDF URL
-            interests: User's research interests (SOP text)
+            interests: User's research interests document
 
         Returns:
             Complete prompt with instructions and injected context

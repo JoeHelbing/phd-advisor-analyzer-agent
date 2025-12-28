@@ -1,6 +1,6 @@
-# Statement of Purpose Template
+# Research Interests Document Template
 
-> **Instructions:** This is a template file. Copy it to your own file (e.g., `my-sop.md`)
+> **Instructions:** This is a template file. Copy it to your own file (e.g., `my-research-interests.md`)
 > and replace the bracketed sections with your actual research interests, methods, and goals.
 > This content is read at runtime and injected into the AI agent's prompts to guide how
 > professors are evaluated for fit with YOUR research interests.

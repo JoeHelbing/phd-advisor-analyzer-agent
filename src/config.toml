@@ -1,8 +1,8 @@
-# Professor Research System Configuration
+# PhD Advisor Analyzer Agent Configuration
 
 [runtime]
 professor_default_descriptor = "Jane Doe | Example University"
-sop_path = "helbing-sop.md"
+research_interests_path = "example-research-interests.md"  # Path to your research interests document
 db_path = "reports.db"
 log_file = "research_system.log"
 

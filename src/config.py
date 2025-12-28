@@ -34,7 +34,7 @@ class CrawlerSettings(BaseSettings):
 
 class RuntimeSettings(BaseSettings):
     professor_default_descriptor: str
-    sop_path: Path
+    research_interests_path: Path
     db_path: Path
     log_file: Path | None = None
 

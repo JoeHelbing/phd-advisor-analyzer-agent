@@ -13,11 +13,20 @@ from src.schema import (
 )
 from src.tools import register_downselector_tools, register_main_agent_tools, register_tools
 
-# Shared provider for all agents
-_provider = OpenRouterProvider(api_key=SETTINGS.openrouter_api_key)
+# Shared provider for all agents (lazy initialization to support testing)
+_provider = None
+
+
+def _get_provider() -> OpenRouterProvider:
+    """Get or create the OpenRouter provider."""
+    global _provider
+    if _provider is None:
+        api_key = SETTINGS.openrouter_api_key or "dummy-key-for-testing"
+        _provider = OpenRouterProvider(api_key=api_key)
+    return _provider
 
 faculty_extractor_agent = Agent(
-    OpenRouterModel(SETTINGS.faculty_extractor_agent.model, provider=_provider),
+    OpenRouterModel(SETTINGS.faculty_extractor_agent.model, provider=_get_provider()),
     deps_type=ResearchDeps,
     output_type=FacultyPageExtraction,
 )
@@ -29,7 +38,7 @@ def faculty_extractor_instructions() -> str:
 
 
 downselector_agent = Agent(
-    OpenRouterModel(SETTINGS.downselector_agent.model, provider=_provider),
+    OpenRouterModel(SETTINGS.downselector_agent.model, provider=_get_provider()),
     deps_type=ResearchDeps,
     output_type=PaperSelection,
 )
@@ -41,7 +50,7 @@ def downselector_instructions() -> str:
 
 
 recruiting_agent = Agent(
-    OpenRouterModel(SETTINGS.recruiting_agent.model, provider=_provider),
+    OpenRouterModel(SETTINGS.recruiting_agent.model, provider=_get_provider()),
     deps_type=ResearchDeps,
     output_type=RecruitingInsight,
 )
@@ -53,7 +62,7 @@ def recruiting_instructions() -> str:
 
 
 scholar_finder_agent = Agent(
-    OpenRouterModel(SETTINGS.scholar_finder_agent.model, provider=_provider),
+    OpenRouterModel(SETTINGS.scholar_finder_agent.model, provider=_get_provider()),
     deps_type=ResearchDeps,
     output_type=ScholarProfileResult,
 )
@@ -66,7 +75,7 @@ def scholar_finder_instructions() -> str:
 
 # Main orchestrator
 main_agent = Agent(
-    OpenRouterModel(SETTINGS.main_agent.model, provider=_provider),
+    OpenRouterModel(SETTINGS.main_agent.model, provider=_get_provider()),
     deps_type=ResearchDeps,
     output_type=ResearchSynthesis,
 )

@@ -18,7 +18,7 @@ class ResearchDeps(BaseModel):
     crawler: AsyncWebCrawler
     google_api_key: str
     google_cse_id: str
-    sop_text: str = ""
+    research_interests: str = ""
     gemini_service: Any | None = None  # GeminiPaperReviewService for paper reviews
 
     # Debug flags
@@ -333,7 +333,7 @@ class ScoreBreakdown(BaseModel):
     """Structured breakdown of ResearchSynthesis score into components."""
 
     research_alignment: ScoreComponent = Field(
-        ..., description="Alignment with SOP research topics (0-25)"
+        ..., description="Alignment with user's research interests and topics (0-25)"
     )
     methods_overlap: ScoreComponent = Field(
         ..., description="Technical skills and methodological fit (0-15)"

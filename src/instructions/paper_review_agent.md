@@ -47,6 +47,6 @@ Brief overview of what the paper is about and its main contribution.
 You will receive:
 - **Title:** The paper title
 - **URL:** Direct link to the PDF
-- **Research interests:** The user's statement of purpose (SOP) describing their research goals
+- **Research interests:** The user's research interests document describing their research goals
 
 Use the URL Context tool to access the paper content and analyze it against the provided research interests.
