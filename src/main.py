@@ -29,9 +29,9 @@ app = typer.Typer()
 
 
 def _load_sop_text() -> str:
-    sop_path = SETTINGS.runtime.sop_path
+    research_interests_path = SETTINGS.runtime.research_interests_path
     try:
-        return sop_path.read_text(encoding="utf-8")
+        return research_interests_path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return ""
 
