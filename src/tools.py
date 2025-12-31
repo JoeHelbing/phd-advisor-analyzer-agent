@@ -294,7 +294,7 @@ async def review_paper_pdf(
         summary = await service.summarize_paper(
             title=paper_title,
             url=paper_url,
-            interests=ctx.deps.sop_text,
+            interests=ctx.deps.research_interests,
         )
 
         # If Gemini service returned an error, return PaperFailure instead of raising

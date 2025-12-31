@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 app = typer.Typer()
 
 
-def _load_sop_text() -> str:
+def _load_research_interests_text() -> str:
     research_interests_path = SETTINGS.runtime.research_interests_path
     try:
         return research_interests_path.read_text(encoding="utf-8")
@@ -37,7 +37,7 @@ def _load_sop_text() -> str:
 
 
 async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> str:
-    sop_text = _load_sop_text()
+    research_interests_text = _load_research_interests_text()
 
     # Create Gemini service if needed (not in debug mode)
     gemini_service = None
@@ -67,7 +67,7 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> str:
                 crawler=crawler,
                 google_api_key=SETTINGS.google_api_key,
                 google_cse_id=SETTINGS.google_cse_id,
-                sop_text=sop_text,
+                research_interests=research_interests_text,
                 gemini_service=gemini_service,
                 debug_skip_reviews=debug_skip_reviews,
             )
@@ -187,7 +187,7 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> str:
                     Scholar Profile: {scholar_results.profile_url}
 
                     Research Interests:
-                    {sop_text}
+                    {research_interests_text}
 
                     Papers scraped from Google Scholar ({len(papers_data)} papers,
                     chronologically sorted, most recent first):
@@ -259,7 +259,7 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> str:
             prompt += f"Recruiting status:\n{json.dumps(recruiting_dict, indent=2)}\n\n"
 
             # Include user's research interests
-            prompt += f"User's research interests (SOP):\n{sop_text}\n\n"
+            prompt += f"User's research interests:\n{research_interests_text}\n\n"
 
             result = await main_agent.run(prompt, deps=deps)
             synthesis = result.output
