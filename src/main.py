@@ -22,6 +22,7 @@ from src.config import SETTINGS
 from src.report_formatter import save_report
 from src.schema import ResearchDeps, ResearchReport
 from src.scholar import fetch_scholar_papers
+from src.tools import NoScholarProfileError, NotFacultyPageError, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -100,40 +101,15 @@ async def _run_research_url(url: str, debug_skip_reviews: bool = False) -> str:
             # ============================================================
             logger.info("\n[bold cyan]═══ Step 2: Google Scholar Scrape ═══[/bold cyan]\n")
 
-            # Convert Pydantic HttpUrl to string for httpx compatibility
-            scholar_url_str = (
-                str(extraction.google_scholar_url)
-                if extraction.google_scholar_url
-                else None
-            )
-
-            # If no Scholar URL found, use scholar_finder_agent to search for it
-            if not scholar_url_str:
-                logger.debug(
-                    "[bold yellow]⚠ No Scholar URL in profile - searching...[/bold yellow]"
-                )
-                prompt = (
-                    f"Find Google Scholar profile for: {extraction.name} "
+            # Faculty extractor should have found Scholar URL or raised exception
+            # This is a safety check that should not normally trigger
+            if not extraction.google_scholar_url:
+                raise NoScholarProfileError(
+                    f"No Google Scholar profile found for {extraction.name} "
                     f"at {extraction.institution}"
                 )
-                finder_result = await scholar_finder_agent.run(prompt, deps=deps)
-                finder_output = finder_result.output
-                logger.debug(
-                    f"[dim]Finder confidence:[/dim] {finder_output.confidence}"
-                )
-                logger.debug(f"[dim]Reasoning:[/dim] {finder_output.reasoning}")
 
-                if finder_output.google_scholar_url:
-                    scholar_url_str = str(finder_output.google_scholar_url)
-                    logger.debug(
-                        f"[bold green]✓ Found Scholar URL:[/bold green] {scholar_url_str}\n"
-                    )
-                else:
-                    logger.error(
-                        "[bold red]✗ Could not find Scholar profile - exiting[/bold red]\n"
-                    )
-                    raise typer.Exit(code=1)
-
+            scholar_url_str = str(extraction.google_scholar_url)
             logger.info(f"Extracted Scholar URL: {extraction.google_scholar_url}")
             logger.info("This can take a minute due to rate limiting...")
             logger.info("Searching for papers...")

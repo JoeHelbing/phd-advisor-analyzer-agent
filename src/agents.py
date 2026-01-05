@@ -11,7 +11,12 @@ from src.schema import (
     ResearchSynthesis,
     ScholarProfileResult,
 )
-from src.tools import register_downselector_tools, register_main_agent_tools, register_tools
+from src.tools import (
+    register_downselector_tools,
+    register_faculty_extractor_tools,
+    register_main_agent_tools,
+    register_tools,
+)
 
 # Shared provider for all agents (lazy initialization to support testing)
 _provider = None
@@ -98,3 +103,6 @@ register_main_agent_tools(main_agent)
 
 # Register downselector-specific tools (fetch_scholar_papers, review_paper_pdf)
 register_downselector_tools(downselector_agent)
+
+# Register faculty-extractor-specific tools (validation error tools)
+register_faculty_extractor_tools(faculty_extractor_agent)

@@ -32,6 +32,29 @@ logger = logging.getLogger(__name__)
 
 
 # --------------------------------------------------------------------------
+# Validation Exceptions
+# --------------------------------------------------------------------------
+
+
+class ValidationError(Exception):
+    """Base class for validation failures."""
+
+    pass
+
+
+class NotFacultyPageError(ValidationError):
+    """Raised when URL is not an individual faculty page."""
+
+    pass
+
+
+class NoScholarProfileError(ValidationError):
+    """Raised when faculty member has no Google Scholar profile."""
+
+    pass
+
+
+# --------------------------------------------------------------------------
 # Web Search Tool
 # --------------------------------------------------------------------------
 #TODO: Use the findings from the google search experiment. Look into that more...
@@ -460,6 +483,56 @@ def register_tools(agent):
     agent.tool(fetch_url)
 
 
+# --------------------------------------------------------------------------
+# Validation Error Tools
+# --------------------------------------------------------------------------
+
+
+def raise_not_faculty_page_error(
+    ctx: RunContext[ResearchDeps],
+    reason: str,
+) -> None:
+    """Raise an error indicating the page is not an individual faculty page.
+
+    Call this tool if the provided URL is not an individual faculty member's
+    profile page (e.g., it's a department directory, listing page, etc.).
+
+    Args:
+        ctx: The run context with dependencies.
+        reason: Brief explanation of why this is not an individual faculty page.
+
+    Raises:
+        NotFacultyPageError: Always raises this exception to stop processing.
+    """
+    raise NotFacultyPageError(
+        f"The provided URL is not an individual faculty page. {reason}"
+    )
+
+
+def raise_no_scholar_profile_error(
+    ctx: RunContext[ResearchDeps],
+    name: str,
+    institution: str,
+) -> None:
+    """Raise an error indicating no Google Scholar profile could be found.
+
+    Call this tool if you cannot find a Google Scholar profile for the faculty
+    member after thoroughly searching (both on their pages and via web search).
+
+    Args:
+        ctx: The run context with dependencies.
+        name: The faculty member's name.
+        institution: The faculty member's institution.
+
+    Raises:
+        NoScholarProfileError: Always raises this exception to stop processing.
+    """
+    raise NoScholarProfileError(
+        f"Could not find a Google Scholar profile for {name} at {institution}. "
+        f"This tool requires a Scholar profile to analyze research output."
+    )
+
+
 def register_main_agent_tools(agent):
     """Register tools specific to the main research agent.
 
@@ -482,3 +555,16 @@ def register_downselector_tools(agent):
         agent: A PydanticAI Agent instance to register tools with.
     """
     agent.tool(review_paper_pdf)
+
+
+def register_faculty_extractor_tools(agent):
+    """Register faculty-extractor-specific validation tools.
+
+    This adds validation error tools that the faculty extractor agent can call
+    to stop processing when encountering invalid input.
+
+    Args:
+        agent: A PydanticAI Agent instance to register tools with.
+    """
+    agent.tool(raise_not_faculty_page_error)
+    agent.tool(raise_no_scholar_profile_error)
